@@ -1,0 +1,27 @@
+{
+  "skills": [
+    {
+      "title": "Languages",
+      "skills": ["C#", "C++", "Python"]
+    },
+    {
+      "title": "Technical Skills",
+      "skills": ["AI", "Combat Systems", "Gameplay Mechanics", "UI/UX Design"]
+    },
+    {
+      "title": "Tools & Software",
+      "skills": ["Unity", "Git & GitHub", "VS Code"]
+    }
+  ],
+  
+  "projects": [
+    {
+      "title": "A* Pathfinding for Dungeon Crawler",
+      "imageUrl": "images/project1.png",
+      "description": "A 2D Unity dungeon crawler prototype featuring an optimized A* pathfinding system for intelligent enemy AI with roaming, chasing, and attacking states. Includes player combat mechanics (melee and ranged), a weapon pickup/drop system, and a functional UI for health, equipment, and game states.",
+      "tags": ["Unity Game Development", "A* Pathfinding AI", "2D Dungeon Crawler", "C# Programming", "Game Mechanics & UI"],
+      "sourceUrl": "https://github.com/z-yxe/A-Star-Pathfinding-for-Dungeon-Crawler",
+      "demoUrl": "https://play.unity.com/en/games/ed158bcc-ed2d-4372-bb0a-968902b4b4d3/a-pathfinding-enemy"
+    }
+  ]
+}
