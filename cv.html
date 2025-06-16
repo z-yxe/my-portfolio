@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - Tazakka Atthariq</title>
+    <style>
+        /* Mengimpor Font */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        /* --- Palet Warna & Variabel --- */
+        :root {
+            --accent-color: #005f73;
+            --sidebar-bg: #f5f7fa;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --border-color: #e2e8f0;
+            --container-bg: #ffffff;
+        }
+
+        /* --- Gaya Dasar & Container --- */
+        body {
+            font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #333333;
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            font-size: 15px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 40px auto;
+            background-color: var(--container-bg);
+            display: flex;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* --- Kolom Kiri & Kanan --- */
+        .left-column {
+            flex: 2.5;
+            padding: 35px;
+        }
+
+        .right-column {
+            flex: 1.2;
+            padding: 35px;
+            background-color: var(--sidebar-bg);
+        }
+
+        /* --- Header --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .header-info h1 {
+            font-size: 38px;
+            font-weight: 700;
+            margin: 0;
+            color: #1a202c;
+            line-height: 1.1;
+        }
+        
+        /* --- Gaya untuk Tautan di Header --- */
+        .header-links {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 15px 0 10px 0;
+            width: 100%;
+        }
+
+        .header-links li {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .header-links a:hover {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .header-links svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--text-light);
+            transition: fill 0.3s ease;
+            margin-right: 8px;
+        }
+        
+        .header-links a:hover svg {
+            fill: var(--accent-color);
+        }
+
+        .header-info h2 {
+            font-size: 17px;
+            font-weight: 400;
+            margin: 0;
+            color: var(--accent-color);
+            font-style: italic;
+        }
+        
+        /* --- Tombol Download --- */
+        .download-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 18px;
+            background-color: var(--accent-color);
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            height: fit-content;
+            align-self: flex-start;
+        }
+
+        .download-button:hover {
+            background-color: #004c5a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 95, 115, 0.25);
+        }
+        
+        .download-button svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* --- Styling Konten Umum --- */
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section-title {
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--accent-color);
+            letter-spacing: 1.5px;
+            font-size: 14px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .entry {
+            margin-bottom: 20px;
+        }
+        
+        .entry-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0 0 4px 0;
+        }
+
+        .entry-subtitle {
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--text-light);
+            margin: 0 0 8px 0;
+            font-style: italic;
+        }
+
+        .project-links {
+            font-size: 14px;
+            margin-top: 8px;
+            margin-bottom: 10px;
+        }
+        
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul {
+            list-style-position: outside;
+            padding-left: 20px;
+            margin: 0;
+        }
+        li {
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        /* --- Gaya Kolom Kanan (Kontak & Skills) --- */
+        .contact-list {
+            list-style: none;
+            padding: 0;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .contact-item svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--accent-color);
+            flex-shrink: 0;
+        }
+        .contact-item a, .contact-item span {
+            word-break: break-word;
+        }
+
+        .skills-category {
+            margin-bottom: 18px;
+        }
+        .skills-category strong {
+            font-weight: 700;
+            color: var(--text-dark);
+            display: block;
+            margin-bottom: 8px;
+        }
+        .skills-category p {
+            margin: 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* Styling khusus untuk education section */
+        .education-details {
+            color: var(--text-light); 
+            font-size: 14px;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .education-entry ul {
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        /* Styling untuk soft skills */
+        .soft-skills-text {
+            color: var(--text-light);
+            font-style: italic;
+            margin: 0;
+        }
+
+        /* --- Gaya untuk Mencetak (Print) --- */
+        @media print {
+            @page {
+                margin: 1cm;
+                size: A4;
+            }
+            
+            body { 
+                background-color: #fff !important; 
+                font-size: 10.5pt !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .container { 
+                box-shadow: none !important; 
+                margin: 0 !important; 
+                padding: 0 !important;
+                border-radius: 0 !important; 
+                max-width: 100% !important; 
+                display: flex !important;
+                background-color: #fff !important;
+            }
+
+            .left-column, .right-column {
+                padding: 20px !important;
+            }
+            
+            .left-column {
+                flex: 2.5 !important;
+            }
+            
+            .right-column {
+                flex: 1.2 !important;
+                background-color: var(--sidebar-bg) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .download-button { 
+                display: none !important; 
+            }
+            
+            .header { 
+                border-bottom: 1px solid var(--border-color) !important;
+                padding-bottom: 15px !important;
+                margin-bottom: 20px !important;
+            }
+            
+            .header-info h1 {
+                font-size: 30pt !important;
+                line-height: 1.1 !important;
+                margin-bottom: 6px !important;
+            }
+
+            .header-links {
+                margin: 10px 0 !important;
+            }
+            
+            .header-info h2 {
+                font-size: 13pt !important;
+            }
+            
+            .section-title { 
+                color: var(--accent-color) !important; 
+                border-bottom: 2px solid var(--accent-color) !important;
+                font-size: 11pt !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .contact-item svg, .header-links svg {
+                fill: var(--accent-color) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            a { 
+                color: var(--accent-color) !important; 
+                text-decoration: none !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .section, .entry, .education-entry, .header-links {
+                page-break-inside: avoid;
+            }
+            .section {
+                margin-bottom: 20px !important;
+            }
+            .entry {
+                margin-bottom: 15px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="left-column">
+            <div class="header">
+                <div class="header-info">
+                    <h1>Tazakka Atthariq</h1>
+                    
+                    <ul class="header-links">
+                        <li>
+                            <a href="https://github.com/z-yxe" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.linkedin.com/in/tazakkaatthariq" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                <span>LinkedIn</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://z-yxe.github.io/my-portfolio/" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g transform="rotate(-45 12 12)"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></g></svg>
+                                <span>Portfolio</span>
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h2>Game Developer (Programmer)</h2>
+                </div>
+                <a href="#" id="download-btn" class="download-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                    <span>Download PDF</span>
+                </a>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">Professional Summary</h3>
+                <p>Motivated Game Programmer with 1-2 years of experience in Unity and C#. Possesses a strong focus on gameplay mechanics and AI, including algorithm implementation and LLM exploration. Driven to apply technical skills and a collaborative spirit in a professional team environment and contribute to the growth of the Indonesian gaming industry.</p>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">Projects</h3>
+                <div class="entry">
+                    <h4 class="entry-title">LLM-Powered NPC Interaction (In Development / Research Project)</h4>
+                    <p class="entry-subtitle">Technologies: Unity, C#, Python</p>
+                    <ul>
+                        <li>Currently exploring the integration of LLM-based NPCs to create more natural and dynamic conversations in games.</li>
+                        <li>The primary research goals include fine-tuning a language model and designing a proof-of-concept memory system for context-aware dialogue.</li>
+                        <li>A self-guided research project aimed at learning and exploring the application of modern AI in games.</li>
+                    </ul>
+                </div>
+                <div class="entry">
+                    <h4 class="entry-title">A* Pathfinding for Dungeon Crawler (Team Project - 4 Members)</h4>
+                    <p class="entry-subtitle">Technologies: Unity, C#</p>
+                    <p class="project-links">
+                        <a href="https://github.com/z-yxe/A-Star-Pathfinding-for-Dungeon-Crawler" target="_blank">Source Code (GitHub)</a> | 
+                        <a href="https://play.unity.com/en/games/ed158bcc-ed2d-4372-bb0a-968902b4b4d3/a-pathfinding-enemy" target="_blank">Playable Demo (Unity Play)</a>
+                    </p>
+                    <ul>
+                        <li>Acted as the Lead Programmer, responsible for designing and implementing the core systems including the A* pathfinding algorithm (optimized with a binary heap), player controller, combat mechanics, and enemy AI.</li>
+                        <li>Collaborated with team members to integrate UI elements and main menu functionality into the final prototype.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3 class="section-title">Professional Development & Certifications</h3>
+                 <ul>
+                    <li>Participate in, <em>Google Play x Unity Indonesian Training Program</em></li>
+                    <li>Certificate, <em>Unity Essentials Pathway</em>, Unity Learn</li>
+                    <li>Online Course (In Progress): <em>The Ultimate Guide to Game Development with Unity</em>, Udemy</li>
+                    <li>Actively learn game development best practices from industry resources including Unity Learn, and various YouTube channels such as Masahiro Sakurai, Code Monkey, Brackeys, GMTK, and others.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="section">
+                <h3 class="section-title">Contact</h3>
+                <ul class="contact-list">
+                    <li class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        <span>Sidoarjo, East Java, Indonesia</span>
+                    </li>
+                     <li class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        <a href="https://wa.me/6289526919882">+62 895 2691 9882</a>
+                    </li>
+                    <li class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        <a href="mailto:tazakkaatthariq@gmail.com">tazakkaatthariq@gmail.com</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">Education</h3>
+                <div class="education-entry">
+                    <h4 class="entry-title">State University of Surabaya</h4>
+                    <p class="entry-subtitle">Bachelor of Informatics Engineering</p>
+                    <p class="education-details">2023 – Present (Expected 2027)<br>GPA: 3.86 / 4.00</p>
+                    <ul>
+                        <li>Honors: 3rd Place, Informatics Engineering Code Jam Competition</li>
+                        <li>Focus Areas: Game Development, Artificial Intelligence, Software Engineering</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">Technical Skills</h3>
+                <div class="skills-category">
+                    <strong>Languages:</strong>
+                    <p>C#, C++, Python, JavaScript, HTML/CSS, PHP</p>
+                </div>
+                <div class="skills-category">
+                    <strong>Game Engine:</strong>
+                    <p>Unity (2D & 3D)</p>
+                </div>
+                 <div class="skills-category">
+                    <strong>Tools & Software:</strong>
+                    <p>Git, GitHub, Visual Studio Code</p>
+                </div>
+                <div class="skills-category">
+                    <strong>Core Concepts:</strong>
+                    <p>Gameplay Mechanics, AI, OOP, Data Structures & Algorithms, Physics Systems, UI/UX, Tooling & Debugging</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">Soft Skills</h3>
+                <p class="soft-skills-text">Problem-Solving, Critical Thinking, Adaptability, Eagerness to Learn, Teamwork, Communication, Attention to Detail, Creativity, Receiving & Implementing Feedback.</p>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">Languages</h3>
+                <p class="soft-skills-text">Indonesian (Native), English (Intermediate)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('download-btn').addEventListener('click', function(event) {
+            event.preventDefault();
+            window.print();
+        });
+    </script>
+</body>
+</html>
