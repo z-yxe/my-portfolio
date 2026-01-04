@@ -1,291 +1,334 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- 1. KONFIGURASI & VARIABEL GLOBAL ---
+    const CONFIG = {
+        sanity: {
+            projectId: "fitgiw5b",
+            dataset: "production",
+            apiVersion: "v2021-10-21"
+        },
+        dom: {
+            heroTitle: document.querySelector('.hero h1'),
+            typingElement: document.getElementById('typing-effect'),
+            skillsContainer: document.getElementById('skills-container'),
+            certContainer: document.getElementById('certifications-container'),
+            projectsContainer: document.getElementById('projects-container'),
+            aboutText: document.querySelector('#about p'),
+            contactText: document.querySelector('#contact p'),
+            contactLinks: document.querySelector('.contact-links'),
+            emailLink: document.querySelector('.email-link'),
+            cvButton: document.querySelector('a[href="cv.html"]'),
+            navToggle: document.getElementById('navToggle'),
+            navLinks: document.getElementById('navLinks')
+        }
+    };
 
-    function renderSkills(skillsData) {
-        const skillsContainer = document.getElementById('skills-container');
-        if (!skillsContainer) return;
+    // Fungsi Global untuk Flip Card
+    window.flipCard = (elementId) => {
+        const card = document.getElementById(elementId);
+        if (card) card.classList.toggle('is-flipped');
+    };
 
-        let skillsHtml = '';
-        skillsData.forEach(category => {
-            const skillList = category.skills.map(skill => `<li>${skill}</li>`).join('');
-            skillsHtml += `
-                <div class="skill-category">
-                    <h3>${category.title}</h3>
-                    <ul>${skillList}</ul>
-                </div>`;
-        });
-        skillsContainer.innerHTML = skillsHtml;
+    // --- 2. API & DATA FETCHING (Update Query) ---
+    async function fetchSanityData() {
+        const { projectId, dataset, apiVersion } = CONFIG.sanity;
+        
+        const query = `
+        {
+            "profile": *[_type == "profile"][0] {
+                about, contactMessage, email, github, linkedin, instagram, whatsapp,
+                "cvUrl": cvFile.asset->url
+            },
+            "skills": *[_type == "skillCategory"] | order(_createdAt asc) {
+                title, skills
+            },
+            "certifications": *[_type == "certification"] | order(date desc) {
+                title, organizer, date, credentialUrl,
+                "logoUrl": logo.asset->url
+            },
+            "projects": *[_type == "project"] | order(_createdAt desc) {
+                title, description, role, tags, 
+                sourceUrl, demoUrl, trailerUrl, 
+                "imageUrl": image.asset->url
+            }
+        }`;
+
+        const url = `https://${projectId}.api.sanity.io/${apiVersion}/data/query/${dataset}?query=${encodeURIComponent(query)}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+            const { result } = await response.json();
+            return result;
+        } catch (error) {
+            console.error("Sanity Fetch Error:", error);
+            return null;
+        }
     }
 
-    function renderProjects(projectsData) {
-        const projectsContainer = document.getElementById('projects-container');
-        if (!projectsContainer) return;
+    // --- 3. UI RENDERING (Update Logic Tombol) ---
+    const UI = {
+        renderProfile: (data) => {
+            if (!data) return;
+            const { aboutText, contactText, contactLinks, emailLink, cvButton } = CONFIG.dom;
 
-        let projectsHtml = '';
-        projectsData.forEach(project => {
-            const tagsHtml = project.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
-            const sourceLink = project.sourceUrl ? `<a href="${project.sourceUrl}" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> Source Code</a>` : '';
-            const demoLink = project.demoUrl ? `<a href="${project.demoUrl}" target="_blank" rel="noopener noreferrer"><i class="fas fa-play"></i> Play Demo</a>` : '';
+            if (aboutText && data.about) aboutText.textContent = data.about;
+            if (contactText && data.contactMessage) contactText.innerHTML = data.contactMessage.replace(/\n/g, '<br>');
+            
+            if (cvButton && data.cvUrl) {
+                cvButton.href = data.cvUrl;
+                cvButton.textContent = "Download CV";
+            }
+            
+            if (emailLink && data.email) {
+                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${data.email}`;
+                
+                emailLink.href = gmailUrl;
+                emailLink.target = "_blank";
+                emailLink.rel = "noopener noreferrer";
+                emailLink.textContent = "Email Me";
+            }
 
-            projectsHtml += `
-                <div class="project-card">
-                    <img src="${project.imageUrl}" alt="Thumbnail for ${project.title}" class="project-image" onerror="this.onerror=null;this.src='https://placehold.co/600x400/1e1e1e/ffffff?text=Image+Not+Found';">
-                    <div class="project-content">
-                        <div class="project-tags">${tagsHtml}</div>
-                        <h3>${project.title}</h3>
-                        <p class="project-description">${project.description}</p>
-                        <div class="project-links">
-                            ${sourceLink}
-                            ${demoLink}
+            if (contactLinks) {
+                const socialMap = [
+                    { url: data.github, icon: 'github', label: 'GitHub' },
+                    { url: data.linkedin, icon: 'linkedin', label: 'LinkedIn' },
+                    { url: data.instagram, icon: 'instagram', label: 'Instagram' },
+                    { url: data.whatsapp, icon: 'whatsapp', label: 'WhatsApp' }
+                ];
+                
+                contactLinks.innerHTML = socialMap
+                    .filter(item => item.url)
+                    .map(item => `<a href="${item.url}" target="_blank" aria-label="${item.label}"><i class="fab fa-${item.icon}"></i></a>`)
+                    .join('');
+            }
+        },
+
+        renderSkills: (data) => {
+            const container = CONFIG.dom.skillsContainer;
+            if (!container) return;
+            if (!data) { container.innerHTML = '<p>Failed to load skills.</p>'; return; }
+
+            container.innerHTML = data.map(category => `
+                <div class="skill-category fade-in">
+                    <h3>${category.title}</h3>
+                    <ul>${(category.skills || []).map(skill => `<li>${skill}</li>`).join('')}</ul>
+                </div>
+            `).join('');
+        },
+
+        renderCertifications: (data) => {
+            const container = CONFIG.dom.certContainer;
+            if (!container) return;
+            
+            // Jika data kosong, sembunyikan section (opsional) atau tampilkan pesan
+            if (!data || data.length === 0) { 
+                container.innerHTML = '<p class="text-secondary">No certifications added yet.</p>'; 
+                return; 
+            }
+
+            container.innerHTML = data.map(cert => {
+                // Tentukan Icon: Jika ada gambar pakai gambar, jika tidak pakai ikon piala default
+                const iconHtml = cert.logoUrl 
+                    ? `<img src="${cert.logoUrl}" alt="${cert.organizer}">`
+                    : `<i class="fas fa-trophy"></i>`;
+                
+                // Link Credential (hanya muncul jika ada URL)
+                const linkHtml = cert.credentialUrl 
+                    ? `<a href="${cert.credentialUrl}" target="_blank" class="cert-link">View Credential <i class="fas fa-external-link-alt" style="font-size:0.7em"></i></a>`
+                    : '';
+
+                return `
+                <div class="cert-card fade-in">
+                    <div class="cert-icon-box">
+                        ${iconHtml}
+                    </div>
+                    <div class="cert-content">
+                        <h3>${cert.title}</h3>
+                        <div class="cert-organizer">${cert.organizer}</div>
+                        <div class="cert-date">${cert.date}</div>
+                        ${linkHtml}
+                    </div>
+                </div>`;
+            }).join('');
+            
+            Effects.initScrollFadeIn(); // Refresh animasi
+        },
+
+        renderProjects: (data) => {
+            const container = CONFIG.dom.projectsContainer;
+            if (!container) return;
+            if (!data) { container.innerHTML = '<p>Failed to load projects.</p>'; return; }
+
+            container.innerHTML = data.map((project, index) => {
+                const img = project.imageUrl || 'https://placehold.co/600x400/1e1e1e/ffffff?text=No+Image';
+                const tags = (project.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+                
+                const btnRole = project.role 
+                    ? `<button class="btn-role" onclick="flipCard('project-${index}')"><i class="fas fa-user-tag"></i> Role</button>` 
+                    : '';
+                const btnTrailer = project.trailerUrl 
+                    ? `<a href="${project.trailerUrl}" target="_blank"><i class="fab fa-youtube"></i> Trailer</a>` 
+                    : '';
+                const btnSource = project.sourceUrl 
+                    ? `<a href="${project.sourceUrl}" target="_blank"><i class="fab fa-github"></i> Source</a>` 
+                    : '';
+                const btnDemo = project.demoUrl 
+                    ? `<a href="${project.demoUrl}" target="_blank"><i class="fas fa-play"></i> Demo</a>` 
+                    : '';
+                
+                const actionButtons = `${btnRole}${btnTrailer}${btnSource}${btnDemo}`;
+
+                let roleContent = '<p style="text-align:center; color:gray;">No role details provided.</p>';
+                if (project.role) {
+                    const lines = project.role.split('\n').filter(line => line.trim() !== '');
+                    const listItems = lines.map(line => `<li>${line.trim()}</li>`).join('');
+                    roleContent = `<ul class="role-list">${listItems}</ul>`;
+                }
+
+                return `
+                <div class="project-card fade-in">
+                    <div class="project-inner" id="project-${index}">
+                        <div class="project-front">
+                            <img src="${img}" alt="${project.title}" class="project-image">
+                            <div class="project-content">
+                                
+                                <div class="project-scroll-area">
+                                    <div class="project-tags">${tags}</div>
+                                    <h3>${project.title}</h3>
+                                    <div class="project-description">${project.description}</div>
+                                </div>
+                                <div class="project-links">${actionButtons}</div>
+                            </div>
+                        </div>
+                        <div class="project-back">
+                            <h3>My Role</h3>
+                            <div class="role-text">${roleContent}</div>
+                            <button class="btn-back" onclick="flipCard('project-${index}')"><i class="fas fa-undo"></i> Back</button>
                         </div>
                     </div>
                 </div>`;
-        });
-        projectsContainer.innerHTML = projectsHtml;
-    }
-
-    function initTypingEffect() {
-        const typingElement = document.getElementById('typing-effect');
-        if (!typingElement) return;
-
-        const words = ["Unity Developer", "Game Programmer", "C# & C++ Language", "AI Enthusiast", "Problem Solver"];
-        let wordIndex = 0, charIndex = 0, isDeleting = false;
-
-        function type() {
-            const currentWord = words[wordIndex];
-            if (isDeleting) {
-                typingElement.textContent = currentWord.substring(0, charIndex - 1);
-                charIndex--;
-            } else {
-                typingElement.textContent = currentWord.substring(0, charIndex + 1);
-                charIndex++;
-            }
-
-            if (!isDeleting && charIndex === currentWord.length) {
-                setTimeout(() => isDeleting = true, 1000);
-            } else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                wordIndex = (wordIndex + 1) % words.length;
-            }
+            }).join('');
             
-            const typingSpeed = isDeleting ? 50 : 100;
-            setTimeout(type, typingSpeed);
+            Effects.initScrollFadeIn();
         }
-        type();
-    }
+    };
 
-    function initScrollFadeIn() {
-        const faders = document.querySelectorAll('.fade-in');
-        if (faders.length === 0) return;
-        
-        const appearOptions = { threshold: 0.2, rootMargin: "0px 0px -50px 0px" };
-        const appearOnScroll = new IntersectionObserver(function(entries, observer) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
+    // --- 4. VISUAL EFFECTS & ANIMATIONS ---
+    const Effects = {
+        initTyping: () => {
+            const el = CONFIG.dom.typingElement;
+            if (!el) return;
+            const words = ["Unity Developer", "Game Programmer", "C# & C++ Language", "AI Enthusiast", "Problem Solver"];
+            let wordIdx = 0, charIdx = 0, isDeleting = false;
+
+            const type = () => {
+                const current = words[wordIdx];
+                el.textContent = current.substring(0, isDeleting ? charIdx - 1 : charIdx + 1);
+                charIdx += isDeleting ? -1 : 1;
+
+                if (!isDeleting && charIdx === current.length) {
+                    setTimeout(() => isDeleting = true, 1000);
+                } else if (isDeleting && charIdx === 0) {
+                    isDeleting = false;
+                    wordIdx = (wordIdx + 1) % words.length;
                 }
-            });
-        }, appearOptions);
-
-        faders.forEach(fader => appearOnScroll.observe(fader));
-    }
-    
-    function initMobileNav() {
-        const navToggle = document.getElementById('navToggle');
-        const navLinks = document.getElementById('navLinks');
-        if (!navToggle || !navLinks) return;
-
-        navToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-
-        navLinks.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-            });
-        });
-    }
-
-    function initActiveNavOnScroll() {
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('.main-nav .nav-links a');
-        if (sections.length === 0 || navLinks.length === 0) return;
-
-        const observerOptions = {
-            rootMargin: '-80px 0px -50% 0px'
-        };
-
-        const sectionObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    navLinks.forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('href') === `#${id}`) {
-                            link.classList.add('active');
-                        }
-                    });
-                }
-            });
-        }, observerOptions);
-
-        sections.forEach(section => {
-            sectionObserver.observe(section);
-        });
-    }
-
-    function initGlitchEffect() {
-        const nameElement = document.querySelector('.hero h1');
-        if (!nameElement) return;
-
-        const allChars = "ABΓΔEZHΘIKΛMNΞOΠPΣTYΦXΨΩabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-+=[{]};:'\"<>,.?/|\\";
-        const names = ["Tazakka Atthariq", "Zyxe"];
-        
-        const scrambleText = (originalText) => {
-            let scrambled = "";
-            for (let i = 0; i < originalText.length; i++) {
-                if (originalText[i] === ' ') { scrambled += ' '; continue; }
-                const randomChar = allChars[Math.floor(Math.random() * allChars.length)];
-                scrambled += Math.random() > 0.6 ? randomChar : originalText[i];
-            }
-            return scrambled;
-        };
-
-        const textMeasurer = document.createElement('span');
-        textMeasurer.style.position = 'absolute';
-        textMeasurer.style.visibility = 'hidden';
-        textMeasurer.style.zIndex = '-1';
-        textMeasurer.style.top = '-9999px';
-        textMeasurer.style.left = '-9999px';
-        textMeasurer.style.font = window.getComputedStyle(nameElement).font;
-        textMeasurer.style.fontWeight = window.getComputedStyle(nameElement).fontWeight;
-        textMeasurer.style.fontSize = window.getComputedStyle(nameElement).fontSize;
-        textMeasurer.style.fontFamily = window.getComputedStyle(nameElement).fontFamily;
-        textMeasurer.style.letterSpacing = window.getComputedStyle(nameElement).letterSpacing;
-        textMeasurer.style.whiteSpace = 'nowrap';
-        document.body.appendChild(textMeasurer);
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'glitch-wrapper';
-        const boxCount = 5;
-        for (let i = 0; i < boxCount; i++) {
-            const box = document.createElement('div');
-            box.className = 'glitch-box';
-            wrapper.appendChild(box);
-        }
-        const glitchBoxes = wrapper.childNodes;
-
-        let currentIndex = 0;
-        let isGlitching = false;
-        
-        nameElement.textContent = names[currentIndex];
-        nameElement.setAttribute('data-text', names[currentIndex]);
-
-        const runGlitchCycle = () => {
-            if (isGlitching) return; 
-            isGlitching = true;
-
-            const startText = names[currentIndex];
-            const endText = names[(currentIndex + 1) % names.length];
-            const startLength = startText.length;
-            const endLength = endText.length;
-            
-            const glitchDuration = 300;
-            let startTime = null;
-
-            const animateBoxes = () => {
-                for (let i = 0; i < glitchBoxes.length; i++) {
-                    glitchBoxes[i].style.top = (Math.random() * 30 + 30) + '%';
-                    glitchBoxes[i].style.left = Math.random() * 100 + '%';
-                    glitchBoxes[i].style.width = Math.random() * 100 + 1 + 'px';
-                    glitchBoxes[i].style.height = Math.random() * 10 + 1 + 'px';
-                    glitchBoxes[i].style.opacity = Math.random() * 0.6 + 0.3;
-                }
+                setTimeout(type, isDeleting ? 50 : 100);
             };
+            type();
+        },
 
-            function animationStep(timestamp) {
-                if (!startTime) startTime = timestamp;
-                const elapsedTime = timestamp - startTime;
-                const progress = Math.min(elapsedTime / glitchDuration, 1.0);
+        initScrollFadeIn: () => {
+            const faders = document.querySelectorAll('.fade-in');
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.2, rootMargin: "0px 0px -50px 0px" });
+            faders.forEach(fader => observer.observe(fader));
+        },
 
-                const currentLength = Math.round(startLength + (endLength - startLength) * progress);
-                let textToDisplay;
+        initNavbar: () => {
+            const { navToggle, navLinks } = CONFIG.dom;
+            if (!navToggle || !navLinks) return;
 
-                if (startLength > endLength) {
-                    const trimTotal = startLength - currentLength;
-                    const trimLeft = Math.round(trimTotal / 2);
-                    textToDisplay = startText.substring(trimLeft, startLength - (trimTotal - trimLeft));
-                } else {
-                    const anchorText = startText;
-                    const paddingTotal = currentLength - anchorText.length;
-                    const paddingLeft = Math.round(paddingTotal / 2);
-                    const paddingRight = paddingTotal - paddingLeft;
-                    
-                    let leftPad = "";
-                    for (let i = 0; i < paddingLeft; i++) { leftPad += allChars[Math.floor(Math.random() * allChars.length)]; }
-                    let rightPad = "";
-                    for (let i = 0; i < paddingRight; i++) { rightPad += allChars[Math.floor(Math.random() * allChars.length)]; }
-                    textToDisplay = leftPad + anchorText + rightPad;
-                }
-                
-                const finalGlitchText = scrambleText(textToDisplay);
+            navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
+            navLinks.querySelectorAll('.nav-link').forEach(l => l.addEventListener('click', () => navLinks.classList.remove('active')));
 
-                textMeasurer.textContent = finalGlitchText;
-                const currentWidth = textMeasurer.offsetWidth;
-                nameElement.style.width = currentWidth + 'px';
-                
-                nameElement.setAttribute('data-text', finalGlitchText);
-                animateBoxes();
-
-                if (progress < 1) {
-                    requestAnimationFrame(animationStep);
-                } else {
-                    currentIndex = (currentIndex + 1) % names.length;
-                    const newName = names[currentIndex];
-                    
-                    nameElement.removeChild(wrapper); 
-                    nameElement.textContent = newName;
-
-                    nameElement.setAttribute('data-text', newName);
-                    nameElement.classList.remove('glitching');
-                    nameElement.style.width = 'auto'; 
-                    isGlitching = false;
-                }
-            }
-
-            nameElement.appendChild(wrapper);
-            nameElement.classList.add('glitching');
-            requestAnimationFrame(animationStep);
-        };
-
-        setInterval(runGlitchCycle, 3000);
-    }
-
-    async function main() {
-        try {
-            const response = await fetch('data.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const data = await response.json();
+            const sections = document.querySelectorAll('section[id]');
             
-            renderSkills(data.skills);
-            renderProjects(data.projects);
+            window.addEventListener('scroll', () => {
+                let current = '';
+                
+                sections.forEach(sec => {
+                    const sectionTop = sec.offsetTop;
+                    const sectionHeight = sec.clientHeight;
+                    
+                    if (window.scrollY >= sectionTop - 200) {
+                        current = sec.getAttribute('id');
+                    }
+                });
 
-        } catch (error) {
-            console.error("Could not load portfolio data:", error);
-            const skillsContainer = document.getElementById('skills-container');
-            const projectsContainer = document.getElementById('projects-container');
-            if(skillsContainer) skillsContainer.innerHTML = "<p>Could not load skills data.</p>";
-            if(projectsContainer) projectsContainer.innerHTML = "<p>Could not load projects data.</p>";
+                const scrollPosition = window.innerHeight + window.scrollY;
+                const bodyHeight = document.body.offsetHeight;
+
+                if (scrollPosition >= bodyHeight - 10) {
+                    current = 'contact';
+                }
+
+                // 3. Terapkan Class Active
+                navLinks.querySelectorAll('a').forEach(a => {
+                    a.classList.remove('active');
+                    if (a.getAttribute('href') === `#${current}`) {
+                        a.classList.add('active');
+                    }
+                });
+            });
+        },
+
+        // --- NEW: FADE NAME SWITCHER (No Glitch) ---
+        initNameFade: () => {
+            const el = CONFIG.dom.heroTitle;
+            if (!el) return;
+
+            const names = ["Tazakka Atthariq", "Zyxe"];
+            let idx = 0;
+
+            setInterval(() => {
+                // 1. Fade Out (Opacity 0)
+                el.classList.add('fade-out');
+
+                // 2. Tunggu transisi CSS selesai (500ms), baru ganti teks
+                setTimeout(() => {
+                    idx = (idx + 1) % names.length;
+                    el.textContent = names[idx];
+                    
+                    // 3. Fade In (Hapus class fade-out)
+                    el.classList.remove('fade-out');
+                }, 500); // Harus sama dengan durasi transition CSS (0.5s)
+
+            }, 4000); // Ganti setiap 4 detik
         }
+    };
 
-        initTypingEffect();
-        initScrollFadeIn();
-        initMobileNav();
-        initActiveNavOnScroll();
-        initGlitchEffect();
+    // --- 5. INITIALIZATION ---
+    async function init() {
+        Effects.initTyping();
+        Effects.initScrollFadeIn();
+        Effects.initNavbar();
+        Effects.initNameFade(); // Panggil fungsi Fade baru
+
+        const data = await fetchSanityData();
+        if (data) {
+            UI.renderProfile(data.profile);
+            UI.renderSkills(data.skills);
+            UI.renderCertifications(data.certifications);
+            UI.renderProjects(data.projects);
+        }
     }
 
-    main();
+    init();
 });
