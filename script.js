@@ -39,14 +39,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 about, contactMessage, email, github, linkedin, instagram, whatsapp,
                 "cvUrl": cvFile.asset->url
             },
-            "skills": *[_type == "skillCategory"] | order(_createdAt asc) {
+            "skills": *[_type == "skillCategory"] | order(orderId asc, date desc) {
                 title, skills
             },
-            "certifications": *[_type == "certification"] | order(date desc) {
+            "certifications": *[_type == "certification"] | order(orderId asc, date desc) {
                 title, organizer, date, credentialUrl,
                 "logoUrl": logo.asset->url
             },
-            "projects": *[_type == "project"] | order(_createdAt desc) {
+            "projects": *[_type == "project"] | order(orderId asc, date desc) {
                 title, description, role, tags, 
                 sourceUrl, demoUrl, trailerUrl, 
                 "imageUrl": image.asset->url
@@ -168,13 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? `<button class="btn-role" onclick="flipCard('project-${index}')"><i class="fas fa-user-tag"></i> Role</button>` 
                     : '';
                 const btnTrailer = project.trailerUrl 
-                    ? `<a href="${project.trailerUrl}" target="_blank"><i class="fab fa-youtube"></i> Trailer</a>` 
+                    ? `<a href="${project.trailerUrl}" target="_blank"><i class="fab fa-youtube"></i> Video</a>` 
                     : '';
                 const btnSource = project.sourceUrl 
-                    ? `<a href="${project.sourceUrl}" target="_blank"><i class="fab fa-github"></i> Source</a>` 
+                    ? `<a href="${project.sourceUrl}" target="_blank"><i class="fab fa-github"></i> Code</a>` 
                     : '';
                 const btnDemo = project.demoUrl 
-                    ? `<a href="${project.demoUrl}" target="_blank"><i class="fas fa-play"></i> Demo</a>` 
+                    ? `<a href="${project.demoUrl}" target="_blank"><i class="fas fa-play"></i> Play</a>` 
                     : '';
                 
                 const actionButtons = `${btnRole}${btnTrailer}${btnSource}${btnDemo}`;

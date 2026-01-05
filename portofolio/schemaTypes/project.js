@@ -6,6 +6,12 @@ export default defineType({
     type: 'document',
     fields: [
         defineField({
+            name: 'orderId',
+            title: 'Urutan Tampil (Order ID)',
+            type: 'number',
+            description: 'Masukkan angka 1 untuk tampil paling atas, 2 untuk urutan kedua, dan seterusnya. Kosongkan jika tidak ingin diatur manual.',
+        }),
+        defineField({
             name: 'title',
             title: 'Project Title',
             type: 'string',

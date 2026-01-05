@@ -232,13 +232,15 @@ section { padding: 6rem 0; }
 .skill-category {
     background-color: var(--primary-bg-light);
     border: 1px solid var(--border-color);
-    padding: 1.5rem;
+    padding: 0; 
+    
     border-radius: 8px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     
     height: 300px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .skill-category:hover {
@@ -250,8 +252,9 @@ section { padding: 6rem 0; }
 .skill-category h3 {
     font-family: var(--font-code);
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
+    
+    padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+    margin-bottom: 0; 
     
     flex-shrink: 0;
 }
@@ -261,7 +264,7 @@ section { padding: 6rem 0; }
     
     flex-grow: 1;
     overflow-y: auto;
-    padding-right: 5px;
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
     
     max-height: none; 
 }
@@ -281,18 +284,21 @@ section { padding: 6rem 0; }
     font-size: 1rem; 
 }
 
-/* --- Scrollbar Cantik untuk Skill --- */
+/* --- Scrollbar --- */
 .skill-category ul::-webkit-scrollbar {
     width: 6px;
 }
+
 .skill-category ul::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.05);
-    border-radius: 4px;
+    background: transparent; 
 }
+
 .skill-category ul::-webkit-scrollbar-thumb {
     background-color: var(--border-color);
     border-radius: 4px;
+    border: 2px solid var(--primary-bg-light);
 }
+
 .skill-category ul::-webkit-scrollbar-thumb:hover {
     background-color: var(--text-secondary);
 }
@@ -302,8 +308,13 @@ section { padding: 6rem 0; }
    ========================================= */
 .cert-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    
+    grid-template-columns: 1fr;
+    
     gap: 1.5rem;
+    
+    max-width: 1100px; 
+    margin: 0 auto;
 }
 
 .cert-card {
@@ -313,14 +324,12 @@ section { padding: 6rem 0; }
     border-radius: 8px;
     
     display: flex;
-    /* UBAH INI: Agar gambar dan teks rata tengah vertikal (atas-bawah seimbang) */
     align-items: center; 
     
     gap: 1rem;
     transition: transform 0.3s ease, border-color 0.3s ease;
     position: relative;
     
-    /* Beri ruang di kanan agar teks tidak menabrak link 'View Credential' */
     padding-right: 140px; 
 }
 
@@ -453,6 +462,18 @@ section { padding: 6rem 0; }
     border-color: var(--text-secondary);
 }
 
+.project-inner.is-flipped .project-front {
+    pointer-events: none;
+}
+
+.project-inner.is-flipped .project-back {
+    pointer-events: auto;
+}
+
+.project-inner:not(.is-flipped) .project-back {
+    pointer-events: none;
+}
+
 /* --- TAMPILAN DEPAN --- */
 .project-front {
     position: absolute;
@@ -484,7 +505,6 @@ section { padding: 6rem 0; }
 
 /* Container Konten Utama */
 .project-content {
-    /* UBAH DISINI: Padding dihapus agar anak-anaknya bisa mepet pinggir */
     padding: 0; 
     
     flex-grow: 1;
@@ -493,22 +513,22 @@ section { padding: 6rem 0; }
     overflow: hidden;
 }
 
-/* --- AREA SCROLL (Judul + Tags + Deskripsi) --- */
+/* --- AREA SCROLL --- */
 .project-scroll-area {
     flex-grow: 1;
     overflow-y: auto;
     min-height: 0;
     
-    /* UBAH DISINI: Padding dipindah ke dalam sini */
     padding: 1.5rem; 
     
-    /* Scrollbar akan menempel di pinggir kanan karena width area ini 100% */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 /* Styling Scrollbar */
 .project-scroll-area::-webkit-scrollbar { width: 6px; }
-.project-scroll-area::-webkit-scrollbar-track { background: transparent; } /* Track transparan agar rapi */
-.project-scroll-area::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 4px; border: 2px solid var(--primary-bg-light); /* Trik agar terlihat lebih tipis */ }
+.project-scroll-area::-webkit-scrollbar-track { background: transparent; }
+.project-scroll-area::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 4px; border: 2px solid var(--primary-bg-light); }
 
 /* Elemen dalam Scroll Area */
 .project-tags {
@@ -537,10 +557,10 @@ section { padding: 6rem 0; }
     font-size: 0.95rem;
     color: var(--text-secondary);
     line-height: 1.6;
-    margin-bottom: 0; /* Margin bawah dihapus, jarak diurus padding container */
+    margin-bottom: 0;
 }
 
-/* --- TOMBOL (Fixed Bottom) --- */
+/* --- TOMBOL --- */
 .project-links {
     flex-shrink: 0;
     border-top: 1px solid rgba(255,255,255,0.05);
@@ -548,11 +568,10 @@ section { padding: 6rem 0; }
     flex-wrap: wrap;
     gap: 10px;
     
-    /* UBAH DISINI: Beri padding manual karena parentnya padding 0 */
     padding: 1rem 1.5rem; 
     
-    background-color: var(--primary-bg-light); /* Pastikan background menutup teks saat di-scroll */
-    position: relative; /* Agar z-index bekerja jika perlu */
+    background-color: var(--primary-bg-light);
+    position: relative;
     z-index: 5;
 }
 
@@ -628,7 +647,9 @@ section { padding: 6rem 0; }
     font-size: 0.95rem;
     line-height: 1.6;
     
-    padding: 1.5rem; 
+    padding: 1.5rem;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 .role-text::-webkit-scrollbar { width: 6px; }
@@ -716,7 +737,7 @@ footer {
 /* =========================================
    7. RESPONSIVE DESIGN
    ========================================= */
-@media (max-width: 768px) {
+@media (max-width: 540px) {
     .nav-links {
         position: fixed;
         top: 70px;
@@ -734,4 +755,36 @@ footer {
     .nav-toggle { display: block; }
     
     .project-card { min-height: 550px; }
+
+    .cert-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem;
+        height: auto;
+        gap: 1rem;
+    }
+
+    .cert-content {
+        align-items: center;
+        width: 100%;
+    }
+
+    .cert-link {
+        position: static;
+        transform: none;
+        display: inline-block;
+        
+        margin-top: 0.8rem;
+        
+        border: none;               
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+    
+    .cert-content h3 {
+        font-size: 1.1rem;
+    }
 }
