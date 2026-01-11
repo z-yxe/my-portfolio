@@ -23,24 +23,40 @@ export default defineType({
             type: 'string',
         }),
         defineField({
-            name: 'github',
-            title: 'GitHub URL',
-            type: 'url',
-        }),
-        defineField({
-            name: 'linkedin',
-            title: 'LinkedIn URL',
-            type: 'url',
-        }),
-        defineField({
-            name: 'instagram',
-            title: 'Instagram URL',
-            type: 'url',
-        }),
-        defineField({
-            name: 'whatsapp',
-            title: 'WhatsApp URL (wa.me)',
-            type: 'url',
+            name: 'socials',
+            title: 'Social Media Links',
+            type: 'array',
+            of: [
+                {
+                    type: 'object',
+                    title: 'Social Link',
+                    fields: [
+                        { 
+                            name: 'platform', 
+                            title: 'Platform Name', 
+                            type: 'string', 
+                            description: 'Contoh: GitHub, LinkedIn' 
+                        },
+                        { 
+                            name: 'url', 
+                            title: 'URL / Link', 
+                            type: 'url' 
+                        },
+                        { 
+                            name: 'icon', 
+                            title: 'Icon Name (FontAwesome)', 
+                            type: 'string', 
+                            description: 'Nama ikon tanpa "fa-". Contoh: github, linkedin, instagram, twitter, youtube, tiktok' 
+                        }
+                    ],
+                    preview: {
+                        select: {
+                            title: 'platform',
+                            subtitle: 'url'
+                        }
+                    }
+                }
+            ]
         }),
         defineField({
             name: 'cvFile',

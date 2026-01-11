@@ -174,23 +174,34 @@ h1, h2, h3 {
     display: flex;
     gap: 1.5rem;
     justify-content: center;
+    flex-wrap: wrap; 
 }
 
 .btn-hero {
     display: inline-block;
-    background: var(--primary-bg-light);
-    border: 1px solid var(--border-color);
-    padding: 0.8rem 1.5rem;
-    border-radius: 7px;
-    text-decoration: none;
+    
+    /* Style Visual (Sesuai yang Anda suka) */
+    background: transparent;
+    border: 1px solid var(--accent-color);
     color: var(--accent-color);
+    border-radius: 50px;
+    
+    /* Ukuran & Font */
+    padding: 0.8rem 2.5rem;
     font-family: var(--font-code);
+    font-size: 0.9rem;
+    text-decoration: none;
     transition: all 0.3s ease;
+    
+    /* PENYAMAAAN UKURAN: Wajib ada ini */
+    min-width: 200px;   /* Lebar minimal agar semua tombol sama besar */
+    text-align: center; /* Teks di tengah */
 }
 
 .btn-hero:hover {
     background: var(--accent-color);
     color: var(--bg-color);
+    transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
 }
 
@@ -389,16 +400,13 @@ section { padding: 6rem 0; }
     font-size: 0.85rem;
     color: var(--text-secondary);
     font-style: italic;
-    /* HAPUS MARGIN BAWAH: Agar padding kartu seimbang atas-bawah */
     margin-bottom: 0; 
 }
 
-/* Link View Credential */
 .cert-link {
     position: absolute;
     right: 1.5rem;
     
-    /* TEKNIK RATA TENGAH VERTIKAL (CENTERED) */
     top: 50%;
     transform: translateY(-50%);
     
@@ -493,7 +501,6 @@ section { padding: 6rem 0; }
     transition: border-color 0.3s ease;
 }
 
-/* Gambar (Fixed Top) */
 .project-image {
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -501,7 +508,88 @@ section { padding: 6rem 0; }
     border-bottom: 1px solid var(--border-color);
     background-color: #000;
     flex-shrink: 0;
+    display: block; 
 }
+
+.project-media-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9; 
+    background-color: #000;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.project-media-wrapper.video-active {
+    cursor: pointer;
+}
+
+.project-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.3s ease;
+}
+
+.play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.project-media-wrapper:hover .play-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.play-overlay i {
+    font-size: 3.5rem;
+    color: #fff;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.project-media-wrapper:hover .play-overlay i {
+    transform: scale(1.1);
+}
+
+.video-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    background: #000;
+    display: none;
+}
+
+.project-media-wrapper.is-playing .video-container {
+    display: block;
+}
+
+.project-video-iframe, 
+.video-container iframe {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: none;
+}
+
 
 /* Container Konten Utama */
 .project-content {
@@ -710,19 +798,30 @@ section { padding: 6rem 0; }
 .email-link {
     display: inline-block;
     margin-top: 2rem;
-    background: var(--primary-bg-light);
-    border: 1px solid var(--border-color);
-    padding: 1rem 1.5rem;
-    border-radius: 7px;
-    text-decoration: none;
+    
+    /* Style Visual */
+    background: transparent;
+    border: 1px solid var(--accent-color);
     color: var(--accent-color);
+    border-radius: 50px;
+    
+    /* Ukuran & Font */
+    padding: 0.8rem 2.5rem;
     font-family: var(--font-code);
+    font-size: 0.9rem;
+    text-decoration: none;
     transition: all 0.3s ease;
+    
+    /* PENYAMAAAN UKURAN */
+    min-width: 200px;
+    text-align: center;
 }
 
 .email-link:hover {
     background: var(--accent-color);
     color: var(--bg-color);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
 }
 
 footer {
@@ -735,9 +834,49 @@ footer {
 }
 
 /* =========================================
+   VIEW ALL BUTTON STYLES
+   ========================================= */
+
+/* Container tombol agar merentang penuh di dalam Grid */
+.view-more-container {
+    grid-column: 1 / -1; /* Trik agar elemen ini mengambil lebar penuh grid */
+    text-align: center;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+.btn-view-all {
+    display: inline-block;
+    
+    /* Style Visual */
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    border-radius: 50px;
+    cursor: pointer;
+    
+    /* Ukuran & Font */
+    padding: 0.8rem 2.5rem;
+    font-family: var(--font-code);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    
+    /* PENYAMAAAN UKURAN */
+    min-width: 200px;
+    text-align: center;
+}
+
+.btn-view-all:hover {
+    background: var(--accent-color);
+    color: var(--bg-color);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+}
+
+/* =========================================
    7. RESPONSIVE DESIGN
    ========================================= */
-@media (max-width: 540px) {
+@media (max-width: 720px) {
     .nav-links {
         position: fixed;
         top: 70px;

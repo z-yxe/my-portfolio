@@ -23,20 +23,112 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Fungsi Global untuk Flip Card
+    // --- FUNGSI TOGGLE (SIMPEL) ---
+    window.toggleItems = (containerId, btnElement) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const isExpanded = btnElement.classList.contains('expanded');
+        const hiddenItems = container.querySelectorAll('.hidden-item');
+
+        if (!isExpanded) {
+            // EXPAND
+            hiddenItems.forEach((item, index) => {
+                item.style.display = ''; 
+                setTimeout(() => item.classList.add('visible'), index * 50);
+            });
+            
+            btnElement.textContent = "Show Less"; // Teks saat terbuka
+            btnElement.classList.add('expanded');
+        } else {
+            // COLLAPSE
+            hiddenItems.forEach(item => {
+                item.style.display = 'none'; 
+                item.classList.remove('visible');
+            });
+
+            btnElement.textContent = "Show All"; // Teks saat tertutup (Reset)
+            btnElement.classList.remove('expanded');
+
+            // Scroll balik ke atas
+            const sectionTitle = container.parentElement.querySelector('.section-title');
+            if (sectionTitle) sectionTitle.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
     window.flipCard = (elementId) => {
         const card = document.getElementById(elementId);
         if (card) card.classList.toggle('is-flipped');
     };
 
-    // --- 2. API & DATA FETCHING (Update Query) ---
+    function getYouTubeId(url) {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    let isYouTubeApiReady = false;
+    function loadYouTubeAPI() {
+        if (window.YT) return;
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
+    
+    window.onYouTubeIframeAPIReady = () => {
+        isYouTubeApiReady = true;
+    };
+    loadYouTubeAPI();
+
+    window.playVideo = (index, videoId) => {
+        event.stopPropagation();
+
+        const wrapper = document.getElementById(`media-wrapper-${index}`);
+        const container = document.getElementById(`video-container-${index}`);
+        
+        if (!wrapper || !container) return;
+
+        wrapper.classList.add('is-playing');
+        container.innerHTML = '<div id="yt-player-' + index + '"></div>';
+
+        if (!isYouTubeApiReady || !window.YT) {
+            container.innerHTML = `
+                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                class="project-video-iframe" allowfullscreen allow="autoplay"></iframe>`;
+            return;
+        }
+
+        new YT.Player(`yt-player-${index}`, {
+            height: '100%',
+            width: '100%',
+            videoId: videoId,
+            playerVars: {
+                'autoplay': 1,
+                'rel': 0,
+                'controls': 1
+            },
+            events: {
+                'onStateChange': (event) => {
+                    if (event.data === YT.PlayerState.ENDED) {
+                        wrapper.classList.remove('is-playing');
+                        container.innerHTML = ''; 
+                    }
+                }
+            }
+        });
+    };
+
+    // --- 2. API & DATA FETCHING ---
     async function fetchSanityData() {
         const { projectId, dataset, apiVersion } = CONFIG.sanity;
         
         const query = `
         {
             "profile": *[_type == "profile"][0] {
-                about, contactMessage, email, github, linkedin, instagram, whatsapp,
+                about, contactMessage, email, 
+                socials,
                 "cvUrl": cvFile.asset->url
             },
             "skills": *[_type == "skillCategory"] | order(orderId asc, date desc) {
@@ -66,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 3. UI RENDERING (Update Logic Tombol) ---
+    // --- 3. UI RENDERING ---
     const UI = {
         renderProfile: (data) => {
             if (!data) return;
@@ -75,32 +167,36 @@ document.addEventListener('DOMContentLoaded', () => {
             if (aboutText && data.about) aboutText.textContent = data.about;
             if (contactText && data.contactMessage) contactText.innerHTML = data.contactMessage.replace(/\n/g, '<br>');
             
-            if (cvButton && data.cvUrl) {
-                cvButton.href = data.cvUrl;
-                cvButton.textContent = "Download CV";
-            }
-            
+            // --- LOGIKA EMAIL (Tetap Sama/Manual) ---
             if (emailLink && data.email) {
                 const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${data.email}`;
-                
                 emailLink.href = gmailUrl;
                 emailLink.target = "_blank";
                 emailLink.rel = "noopener noreferrer";
                 emailLink.textContent = "Email Me";
             }
+            
+            // --- LOGIKA CV (Tetap Sama) ---
+            if (cvButton && data.cvUrl) {
+                cvButton.href = data.cvUrl;
+                cvButton.textContent = "Download CV";
+            }
 
-            if (contactLinks) {
-                const socialMap = [
-                    { url: data.github, icon: 'github', label: 'GitHub' },
-                    { url: data.linkedin, icon: 'linkedin', label: 'LinkedIn' },
-                    { url: data.instagram, icon: 'instagram', label: 'Instagram' },
-                    { url: data.whatsapp, icon: 'whatsapp', label: 'WhatsApp' }
-                ];
-                
-                contactLinks.innerHTML = socialMap
-                    .filter(item => item.url)
-                    .map(item => `<a href="${item.url}" target="_blank" aria-label="${item.label}"><i class="fab fa-${item.icon}"></i></a>`)
-                    .join('');
+            // --- PERUBAHAN BARU: RENDER DYNAMIC SOCIALS ---
+            if (contactLinks && data.socials && data.socials.length > 0) {
+                // Loop data dari database, bukan hardcode
+                contactLinks.innerHTML = data.socials.map(item => {
+                    // Pastikan ikonnya valid (lowercase biar aman)
+                    const iconName = item.icon ? item.icon.toLowerCase() : 'link'; 
+                    return `
+                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" aria-label="${item.platform}">
+                            <i class="fab fa-${iconName}"></i>
+                        </a>
+                    `;
+                }).join('');
+            } else if (contactLinks) {
+                // Jika data kosong di database
+                contactLinks.innerHTML = ''; 
             }
         },
 
@@ -120,26 +216,31 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCertifications: (data) => {
             const container = CONFIG.dom.certContainer;
             if (!container) return;
-            
-            // Jika data kosong, sembunyikan section (opsional) atau tampilkan pesan
             if (!data || data.length === 0) { 
                 container.innerHTML = '<p class="text-secondary">No certifications added yet.</p>'; 
                 return; 
             }
 
-            container.innerHTML = data.map(cert => {
-                // Tentukan Icon: Jika ada gambar pakai gambar, jika tidak pakai ikon piala default
+            const LIMIT = 3; // Batas tampil awal
+
+            // Render SEMUA data, tapi yang > LIMIT disembunyikan
+            const htmlItems = data.map((cert, index) => {
+                // Cek apakah item ini harus disembunyikan
+                const isHidden = index >= LIMIT;
+                const hiddenStyle = isHidden ? 'style="display:none;"' : '';
+                const hiddenClass = isHidden ? 'hidden-item' : '';
+
                 const iconHtml = cert.logoUrl 
                     ? `<img src="${cert.logoUrl}" alt="${cert.organizer}">`
                     : `<i class="fas fa-trophy"></i>`;
                 
-                // Link Credential (hanya muncul jika ada URL)
                 const linkHtml = cert.credentialUrl 
                     ? `<a href="${cert.credentialUrl}" target="_blank" class="cert-link">View Credential <i class="fas fa-external-link-alt" style="font-size:0.7em"></i></a>`
                     : '';
 
+                // Tambahkan class hidden-item dan style display:none jika index >= limit
                 return `
-                <div class="cert-card fade-in">
+                <div class="cert-card fade-in ${hiddenClass}" ${hiddenStyle}>
                     <div class="cert-icon-box">
                         ${iconHtml}
                     </div>
@@ -151,8 +252,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>`;
             }).join('');
-            
-            Effects.initScrollFadeIn(); // Refresh animasi
+
+            // Tambahkan Tombol View All jika data lebih dari LIMIT
+            let buttonHtml = '';
+            if (data.length > LIMIT) {
+                // Tidak perlu kirim teks, cukup panggil ID dan 'this'
+                buttonHtml = `
+                    <div class="view-more-container">
+                        <button class="btn-view-all" onclick="toggleItems('certifications-container', this)">
+                            Show All
+                        </button>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = htmlItems + buttonHtml;
+            Effects.initScrollFadeIn();
         },
 
         renderProjects: (data) => {
@@ -160,24 +275,44 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!container) return;
             if (!data) { container.innerHTML = '<p>Failed to load projects.</p>'; return; }
 
-            container.innerHTML = data.map((project, index) => {
+            const LIMIT = 3; // Batas tampil awal untuk Projects
+
+            const htmlItems = data.map((project, index) => {
+                // Cek Hidden
+                const isHidden = index >= LIMIT;
+                const hiddenStyle = isHidden ? 'style="display:none;"' : '';
+                const hiddenClass = isHidden ? 'hidden-item' : '';
+
                 const img = project.imageUrl || 'https://placehold.co/600x400/1e1e1e/ffffff?text=No+Image';
                 const tags = (project.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
                 
+                // Logic Video (Tetap dipertahankan)
+                const videoId = getYouTubeId(project.trailerUrl);
+                let mediaContent;
+
+                if (videoId) {
+                    mediaContent = `
+                        <div class="project-media-wrapper" id="media-wrapper-${index}" onclick="playVideo(${index}, '${videoId}')">
+                            <img src="${img}" alt="${project.title}" class="project-image">
+                            <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+                            <div class="video-container" id="video-container-${index}"></div>
+                        </div>
+                    `;
+                } else {
+                    mediaContent = `
+                        <div class="project-media-wrapper" style="cursor: default;">
+                             <img src="${img}" alt="${project.title}" class="project-image">
+                        </div>`;
+                }
+
                 const btnRole = project.role 
-                    ? `<button class="btn-role" onclick="flipCard('project-${index}')"><i class="fas fa-user-tag"></i> Role</button>` 
-                    : '';
-                const btnTrailer = project.trailerUrl 
-                    ? `<a href="${project.trailerUrl}" target="_blank"><i class="fab fa-youtube"></i> Video</a>` 
-                    : '';
+                    ? `<button class="btn-role" onclick="flipCard('project-${index}')"><i class="fas fa-user-tag"></i> Role</button>` : '';
                 const btnSource = project.sourceUrl 
-                    ? `<a href="${project.sourceUrl}" target="_blank"><i class="fab fa-github"></i> Code</a>` 
-                    : '';
+                    ? `<a href="${project.sourceUrl}" target="_blank"><i class="fab fa-github"></i> Code</a>` : '';
                 const btnDemo = project.demoUrl 
-                    ? `<a href="${project.demoUrl}" target="_blank"><i class="fas fa-play"></i> Play</a>` 
-                    : '';
+                    ? `<a href="${project.demoUrl}" target="_blank"><i class="fas fa-play"></i> Play</a>` : '';
                 
-                const actionButtons = `${btnRole}${btnTrailer}${btnSource}${btnDemo}`;
+                const actionButtons = `${btnRole}${btnSource}${btnDemo}`;
 
                 let roleContent = '<p style="text-align:center; color:gray;">No role details provided.</p>';
                 if (project.role) {
@@ -186,13 +321,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     roleContent = `<ul class="role-list">${listItems}</ul>`;
                 }
 
+                // Tambahkan hiddenClass dan hiddenStyle ke wrapper utama
                 return `
-                <div class="project-card fade-in">
+                <div class="project-card fade-in ${hiddenClass}" ${hiddenStyle}>
                     <div class="project-inner" id="project-${index}">
                         <div class="project-front">
-                            <img src="${img}" alt="${project.title}" class="project-image">
+                            ${mediaContent}
                             <div class="project-content">
-                                
                                 <div class="project-scroll-area">
                                     <div class="project-tags">${tags}</div>
                                     <h3>${project.title}</h3>
@@ -210,6 +345,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             }).join('');
             
+            // Tambahkan Tombol View All Projects
+            let buttonHtml = '';
+            if (data.length > LIMIT) {
+                buttonHtml = `
+                    <div class="view-more-container">
+                        <button class="btn-view-all" onclick="toggleItems('projects-container', this)">
+                            Show All
+                        </button>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = htmlItems + buttonHtml;
             Effects.initScrollFadeIn();
         }
     };
@@ -221,12 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!el) return;
             const words = ["Unity Developer", "Game Programmer", "C# & C++ Language", "AI Enthusiast", "Problem Solver"];
             let wordIdx = 0, charIdx = 0, isDeleting = false;
-
             const type = () => {
                 const current = words[wordIdx];
                 el.textContent = current.substring(0, isDeleting ? charIdx - 1 : charIdx + 1);
                 charIdx += isDeleting ? -1 : 1;
-
                 if (!isDeleting && charIdx === current.length) {
                     setTimeout(() => isDeleting = true, 1000);
                 } else if (isDeleting && charIdx === 0) {
@@ -237,7 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             type();
         },
-
         initScrollFadeIn: () => {
             const faders = document.querySelectorAll('.fade-in');
             const observer = new IntersectionObserver((entries, obs) => {
@@ -250,67 +395,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }, { threshold: 0.2, rootMargin: "0px 0px -50px 0px" });
             faders.forEach(fader => observer.observe(fader));
         },
-
         initNavbar: () => {
             const { navToggle, navLinks } = CONFIG.dom;
             if (!navToggle || !navLinks) return;
-
             navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
             navLinks.querySelectorAll('.nav-link').forEach(l => l.addEventListener('click', () => navLinks.classList.remove('active')));
-
             const sections = document.querySelectorAll('section[id]');
-            
             window.addEventListener('scroll', () => {
                 let current = '';
-                
                 sections.forEach(sec => {
                     const sectionTop = sec.offsetTop;
-                    const sectionHeight = sec.clientHeight;
-                    
                     if (window.scrollY >= sectionTop - 200) {
                         current = sec.getAttribute('id');
                     }
                 });
-
                 const scrollPosition = window.innerHeight + window.scrollY;
                 const bodyHeight = document.body.offsetHeight;
-
-                if (scrollPosition >= bodyHeight - 10) {
-                    current = 'contact';
-                }
-
-                // 3. Terapkan Class Active
+                if (scrollPosition >= bodyHeight - 10) { current = 'contact'; }
                 navLinks.querySelectorAll('a').forEach(a => {
                     a.classList.remove('active');
-                    if (a.getAttribute('href') === `#${current}`) {
-                        a.classList.add('active');
-                    }
+                    if (a.getAttribute('href') === `#${current}`) { a.classList.add('active'); }
                 });
             });
         },
-
-        // --- NEW: FADE NAME SWITCHER (No Glitch) ---
         initNameFade: () => {
             const el = CONFIG.dom.heroTitle;
             if (!el) return;
-
             const names = ["Tazakka Atthariq", "Zyxe"];
             let idx = 0;
-
             setInterval(() => {
-                // 1. Fade Out (Opacity 0)
                 el.classList.add('fade-out');
-
-                // 2. Tunggu transisi CSS selesai (500ms), baru ganti teks
                 setTimeout(() => {
                     idx = (idx + 1) % names.length;
                     el.textContent = names[idx];
-                    
-                    // 3. Fade In (Hapus class fade-out)
                     el.classList.remove('fade-out');
-                }, 500); // Harus sama dengan durasi transition CSS (0.5s)
-
-            }, 4000); // Ganti setiap 4 detik
+                }, 500);
+            }, 4000);
         }
     };
 
@@ -319,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Effects.initTyping();
         Effects.initScrollFadeIn();
         Effects.initNavbar();
-        Effects.initNameFade(); // Panggil fungsi Fade baru
+        Effects.initNameFade();
 
         const data = await fetchSanityData();
         if (data) {
